@@ -1,67 +1,68 @@
 /** @format */
 
-import React, { useEffect } from 'react';
-import axios from 'axios';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
+import useFetch from './CustomHook';
 
 const MainView = () => {
-	const authors = ['Stephen King', 'Brandon Sanderson', 'Rowling Tolkien'];
-	const [data, setData] = useState([]);
+	const navigate = useNavigate();
+	const [searchPattern, setSetPattern] = useState('');
+	const [data] = useFetch(searchPattern, 10);
 
-	/*useEffect(() => {
-		authors
-			.map((author) => author.replace(' ', '+'))
-			.map((author2) => {
-				return axios
-					.get(
-						`https://www.googleapis.com/books/v1/volumes?q=inauthor:${author2}&key=AIzaSyBtCL1XBIUeV7VUj9Wb30tqUQ2KDwqKQNM+&maxResults=10`
-					)
-					.then((res) => {
-						setData(res.data.items);
-					})
-					.catch((err) => console.log(err));
-			});
-	}, [authors]);*/
-
-	useEffect(() => {
-		axios
-			.get(
-				`https://www.googleapis.com/books/v1/volumes?q=inauthor:Brandon+Sanderson&key=AIzaSyBtCL1XBIUeV7VUj9Wb30tqUQ2KDwqKQNM+&maxResults=10`
-			)
-			.then((res) => {
-				setData(res.data.items);
-			})
-			.catch((err) => console.log(err));
-	}, [authors]);
-
-	console.log(data);
+	const handleClick = (author) => {
+		navigate(`/${author}`);
+	};
 
 	return (
-		<table>
-			<thead>
-				<tr>
-					<th className='border border-slate-300 ...'>ID</th>
-					<th className='border border-slate-300 ...'>Author</th>
-					<th className='border border-slate-300 ...'>Title</th>
-					<th className='border border-slate-300 ...'>Kind</th>
-				</tr>
-			</thead>
-			<tbody>
-				{/*data.map((item) => {
-					const ID = item.accessInfo.id;
-					const Title = item.volumeInfo.title;
-					const Author = item.volumeInfo.authors;
-
-					return (
+		<div className='container flex items-center flex-col bg-gray-700 w-full h-screen border-2 border-indigo-400'>
+			<form className='flex flex-col py-4'>
+				<label htmlFor='name'>Search for an author</label>
+				<input
+					name='name'
+					type='text'
+					value={searchPattern}
+					onChange={(e) => setSetPattern(e.target.value)}
+				/>
+			</form>
+			<table className=' bg-gray-800 mx-auto rounded-lg text-white'>
+				<thead>
+					<tr className='border-b-2 border-indigo-400'>
+						<th>Lp</th>
+						<th>Author</th>
+						<th>Kind</th>
+					</tr>
+				</thead>
+				<tbody>
+					{data === undefined ? (
 						<tr>
-							<td className='border border-slate-300 ...'>{ID}</td>
-							<td className='border border-slate-300 ...'>{Author}</td>
-							<td className='border border-slate-300 ...'>{Title}</td>
+							<td className='border border-slate-300 ...'>"Loading"</td>
 						</tr>
-					);
-				})*/}
-			</tbody>
-		</table>
+					) : (
+						data.map((item, index) => {
+							return item.map((item2, index2) => {
+								const Author = item2.volumeInfo.authors;
+								const Kind = item2.volumeInfo.categories;
+
+								return (
+									<tr
+										className='border-b-2 border-indigo-400 py-5'
+										onClick={() => handleClick(Author)}
+										key={index2}>
+										<td>{index2 + 1}</td>
+										<td>{Author}</td>
+										<td>{Kind}</td>
+									</tr>
+								);
+							});
+						})
+					)}
+				</tbody>
+			</table>
+			<div>
+				<Outlet />
+			</div>
+		</div>
 	);
 };
 
